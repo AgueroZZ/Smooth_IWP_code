@@ -17,8 +17,9 @@ The simulation/examples in the main paper are replicated in the following script
      - *script.R* produces the corresponding figures to *figures* directory.
 
 - **Section 4.2**:  
-     - *script1.R* reproduces the single replication analysis and stores figures into *figures*.
-     - *script2.R* produces the computational comparison results in the corresponding section.
+     - *01_script.R* reproduces the single replication analysis and stores figures into *figures*.
+     - *02_script.R* produces the computational comparison results in the corresponding section.
+     - *03_script.R* produces the KL comparison shown in the online supplement.
 
 - **Section 4.3**:  
      - *01_single_rep.R* implements the single replication comparison and produces the corresponding figures.
