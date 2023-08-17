@@ -1,7 +1,7 @@
-working_path <- "/Users/ziangzhang/Documents/GitHub/random-walks/Research_Progress/covid_data/v11/"
-source_path <- "/Users/ziangzhang/Documents/GitHub/random-walks/Research_Progress/covid_data/v11/source/"
-figure_path <- "/Users/ziangzhang/Documents/GitHub/random-walks/Research_Progress/covid_data/v11/figures/"
-cpp_path <- "/Users/ziangzhang/Documents/GitHub/random-walks/Research_Progress/covid_data/v11/cpp/"
+working_path <- getwd()
+source_path <- paste0(working_path,"/source/")
+figure_path <- paste0(working_path,"/figures/")
+cpp_path <- paste0(working_path,"/cpp/")
 
 source(paste0(source_path,"08_loads.R"))
 source(paste0(source_path,"18_functions_defined.R"))
@@ -9,7 +9,7 @@ source(paste0(source_path,"02_functions_model_selection.R"))
 source(paste0(source_path,"bayes_regression_COVID.R"))
 compile(paste0(cpp_path,"00_Poisson_Smoothing_PC_overdisp_covid.cpp"))
 dyn.load(dynlib(paste0(cpp_path,"00_Poisson_Smoothing_PC_overdisp_covid")))
-full_data_covid <- read.csv(file = paste0(working_path, "owid-covid-data.csv"), header = T)
+full_data_covid <- read.csv(file = paste0(working_path, "/owid-covid-data.csv"), header = T)
 full_data_covid <- full_data_covid %>% filter(date >= "2020-03-01")
 
 
@@ -47,11 +47,13 @@ full_data_canada$OS3smoothed_upper_overd <- OS3g_result_Over$upper
 full_data_canada$OS3smoothed_lower_overd <- OS3g_result_Over$lower
 full_data_canada$Date <- as.Date(full_data_canada$date)
 
-full_data_canada %>% ggplot(aes(x = Date, y = log(new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
-  theme_classic(base_size = 15) + ylab("Log New Deaths") + xlab("") + 
+full_data_canada %>% mutate(new_deaths = ifelse(new_deaths == 0, new_deaths + 0.5, new_deaths)) %>%
+  ggplot(aes(x = Date, y = (new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
+  theme_classic(base_size = 15) + ylab("New Deaths") + xlab("") + 
   theme(legend.position = "none"
         ) +
-  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = (c(1,7)))
+  scale_x_date(date_labels = "%y %b") + 
+  scale_y_continuous(trans = "log", breaks = c(5,20,50,150,400,1000), limits = c(1,1000))
 ggsave(paste0(figure_path, "canada_covid_death_raw.pdf"), device = "pdf", width = 5, height = 5)
 
 
@@ -71,7 +73,7 @@ full_data_canada %>% ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymax = (OS3smoothed_upper_overd), ymin = (OS3smoothed_lower_overd)), fill = "orange", alpha = 0.3) +
   theme_classic(base_size = 15) + ylab("g(t)") + xlab("") + 
   scale_color_manual(values = c("blue")) + guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-2,6))
 ggsave(paste0(figure_path, "canada_covid_log_death.pdf"), device = "pdf", width = 5, height = 5)
 
 
@@ -117,7 +119,7 @@ OS3f1st_result_over %>% ggplot(aes(x = Date)) +
   ylab("g'(t)") + xlab("") +
   scale_color_manual(values = c("blue")) +
   guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-3,5))
 
 ggsave(paste0(figure_path, "canada_covid_death_deriv_log.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -167,10 +169,12 @@ full_data_DK$OS3smoothed_lower_overd <- OS3g_result_Over$lower
 full_data_DK$Date <- as.Date(full_data_DK$date)
 
 
-full_data_DK %>% ggplot(aes(x = Date, y = log(new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
-  theme_classic(base_size = 15) + ylab("Log New Deaths") + xlab("") + 
+full_data_DK %>% mutate(new_deaths = ifelse(new_deaths == 0, new_deaths + 0.5, new_deaths)) %>%
+  ggplot(aes(x = Date, y = (new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
+  theme_classic(base_size = 15) + ylab("New Deaths") + xlab("") + 
   theme(legend.position = "none") + 
-  scale_x_date(date_labels = "%y %b")  + coord_cartesian(ylim = (c(1,7)))
+  scale_x_date(date_labels = "%y %b")  + 
+  scale_y_continuous(trans = "log", breaks = c(5,20,50,150,400,1000), limits = c(1,1000))
 
 ggsave(paste0(figure_path, "DK_covid_death_raw.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -191,7 +195,7 @@ full_data_DK %>% ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymax = (OS3smoothed_upper_overd), ymin = (OS3smoothed_lower_overd)), fill = "orange", alpha = 0.3) +
   theme_classic(base_size = 15) + ylab("g(t)") + xlab("") + 
   scale_color_manual(values = c("blue"))  +
-  scale_x_date(date_labels = "%y %b") + guides(color= "none")
+  scale_x_date(date_labels = "%y %b") + guides(color= "none") + coord_cartesian(ylim = c(-2,6))
 ggsave(paste0(figure_path, "DK_covid_log_death.pdf"), device = "pdf", width = 5, height = 5)
 
 
@@ -234,7 +238,7 @@ OS3f1st_result_over %>% ggplot(aes(x = Date)) +
   ylab("g'(t)") + xlab("") +
   scale_color_manual(values = c("blue")) +
   guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-3,5))
 
 ggsave(paste0(figure_path, "DK_covid_death_deriv_log.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -284,10 +288,12 @@ full_data_SA$OS3smoothed_lower_overd <- OS3g_result_Over$lower
 full_data_SA$Date <- as.Date(full_data_SA$date)
 
 
-full_data_SA %>% ggplot(aes(x = Date, y = log(new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
-  theme_classic(base_size = 15) + ylab("Log New Deaths") + xlab("") + 
-  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = (c(1,7))) +
-  theme(legend.position = "none")
+full_data_SA %>% mutate(new_deaths = ifelse(new_deaths == 0, new_deaths + 0.5, new_deaths)) %>%
+  ggplot(aes(x = Date, y = (new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
+  theme_classic(base_size = 15) + ylab("New Deaths") + xlab("") + 
+  theme(legend.position = "none") + 
+  scale_x_date(date_labels = "%y %b")  + 
+  scale_y_continuous(trans = "log", breaks = c(5,20,50,150,400,1000), limits = c(1,1000))
 ggsave(paste0(figure_path, "SA_covid_death_raw.pdf"), device = "pdf", width = 5, height = 5)
 
 
@@ -305,7 +311,7 @@ full_data_SA %>% ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymax = (OS3smoothed_upper_overd), ymin = (OS3smoothed_lower_overd)), fill = "orange", alpha = 0.3) +
   theme_classic(base_size = 15) + ylab("g(t)") + xlab("") + 
   scale_color_manual(values = c("blue")) + guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-2,6))
 
 ggsave(paste0(figure_path, "SA_covid_log_death.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -347,7 +353,7 @@ OS3f1st_result_over %>% ggplot(aes(x = Date)) +
   ylab("g'(t)") + xlab("") +
   scale_color_manual(values = c("blue")) +
   guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-3,5))
 
 ggsave(paste0(figure_path, "SA_covid_death_deriv_log.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -393,9 +399,11 @@ full_data_SK$OS3smoothed_upper_overd <- OS3g_result_Over$upper
 full_data_SK$OS3smoothed_lower_overd <- OS3g_result_Over$lower
 full_data_SK$Date <- as.Date(full_data_SK$date)
 
-full_data_SK %>% ggplot(aes(x = Date, y = log(new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
-  theme_classic(base_size = 15) + ylab("Log New Deaths") + xlab("") + 
-  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = (c(0.5,7))) + 
+full_data_SK %>% mutate(new_deaths = ifelse(new_deaths == 0, new_deaths + 0.5, new_deaths)) %>%
+  ggplot(aes(x = Date, y = (new_deaths))) + geom_point(aes(color = weekdays), alpha = 0.4) + 
+  theme_classic(base_size = 15) + ylab("New Deaths") + xlab("") + 
+  scale_x_date(date_labels = "%y %b") + 
+  scale_y_continuous(trans = "log", breaks = c(5,20,50,150,400,1000), limits = c(1,1000)) + 
   theme(legend.position = c(.2,.75), legend.title = element_text(size=15), #change legend title font size
         legend.text = element_text(size=12),
         legend.key.size = unit(0.2, 'cm'), #change legend key size
@@ -419,7 +427,7 @@ full_data_SK %>% ggplot(aes(x = Date)) +
   geom_ribbon(aes(ymax = (OS3smoothed_upper_overd), ymin = (OS3smoothed_lower_overd)), fill = "orange", alpha = 0.3) +
   theme_classic(base_size = 15) + ylab("g(t)") + xlab("") + 
   scale_color_manual(values = c("blue")) + guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-2,6))
 
 ggsave(paste0(figure_path, "SK_covid_log_death.pdf"), device = "pdf", width = 5, height = 5)
 
@@ -465,7 +473,7 @@ OS3f1st_result_over %>% ggplot(aes(x = Date)) +
   ylab("g'(t)") + xlab("") +
   scale_color_manual(values = c("blue")) +
   guides(color= "none") +
-  scale_x_date(date_labels = "%y %b")
+  scale_x_date(date_labels = "%y %b") + coord_cartesian(ylim = c(-3,5))
 
 ggsave(paste0(figure_path, "SK_covid_death_deriv_log.pdf"), device = "pdf", width = 5, height = 5)
 
